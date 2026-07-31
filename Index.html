@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CarDeal241 — Voitures d'occasion</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap');
+
+  :root{
+    --ink:#1C1B1A;
+    --paper:#F2EDE4;
+    --ochre:#D98E2B;
+    --forest:#2B4A3B;
+    --rust:#B4472C;
+    --line: rgba(28,27,26,0.14);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:60px;
+  }
+  h1,h2,h3, .display{ font-family:'Space Grotesk', sans-serif; font-weight:700; letter-spacing:-0.01em; }
+  a{color:inherit; text-decoration:none;}
+  button{cursor:pointer; font-family:inherit;}
+
+  .road{
+    height:2px;
+    background: repeating-linear-gradient(to right, var(--ink) 0 18px, transparent 18px 32px);
+    opacity:0.5;
+  }
+
+  header{
+    padding: 16px 20px;
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--ink); color:var(--paper);
+    position:sticky; top:0; z-index:10;
+  }
+  header .logo{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:1.1rem; display:flex; align-items:center; gap:8px; }
+  header .logo .dot{width:8px;height:8px;background:var(--ochre); border-radius:50%;}
+  .logo-wrap{ display:flex; flex-direction:column; gap:2px; }
+  .tagline{ font-size:0.68rem; color:rgba(242,237,228,0.6); padding-left:16px; }
+  .user-chip{ display:flex; align-items:center; gap:8px; font-size:0.8rem; }
+  .avatar{width:26px;height:26px;border-radius:50%; background:var(--ochre); color:var(--ink); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.75rem;}
+  .btn{ border:none; border-radius:100px; font-weight:600; padding:9px 16px; font-size:0.82rem; }
+  .btn-ochre{ background:var(--ochre); color:var(--ink); }
+  .btn-ghost-dark{ background:transparent; color:var(--paper); border:1px solid rgba(242,237,228,0.35); }
+  .btn-forest{ background:var(--forest); color:var(--paper); }
+  .btn-outline{ background:#fff; color:var(--ink); border:1px solid var(--line); }
+  .btn-sm{ padding:7px 12px; font-size:0.75rem; }
+  .btn-block{width:100%; text-align:center;}
+
+  section{padding: 22px 20px;}
+  .section-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:14px; }
+  .section-head h2{font-size:1.15rem;}
+  .tabs{ display:flex; gap:8px; margin-bottom:14px; }
+  .tab{ padding:8px 14px; border-radius:100px; font-size:0.8rem; font-weight:600; border:1px solid var(--line); background:#fff; color:var(--ink); }
+  .tab.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+
+  .listings{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .card{ background:#fff; border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  .card .thumb{ height:80px; background:linear-gradient(135deg, var(--forest), #1f3a2d); display:flex; align-items:center; justify-content:center; color:rgba(242,237,228,0.5); font-size:0.68rem; }
+  .card .body{padding:10px 12px 12px;}
+  .card .price{ font-family:'Space Grotesk', sans-serif; font-weight:700; color:var(--rust); font-size:0.9rem; }
+  .card .name{font-size:0.82rem; font-weight:600; margin:2px 0 4px;}
+  .card .meta{font-size:0.7rem; color:#6b6862; margin-bottom:8px;}
+
+  .empty{ text-align:center; padding:30px 20px; color:#8a877f; font-size:0.85rem; background:#fff; border:1px dashed var(--line); border-radius:14px; }
+
+  .safety-note{
+    background: rgba(43,74,59,0.08);
+    border:1px solid rgba(43,74,59,0.22);
+    color:var(--forest);
+    font-size:0.78rem;
+    line-height:1.5;
+    padding:12px 14px;
+    border-radius:12px;
+    margin-bottom:16px;
+  }
+
+  /* Modal */
+  .overlay{ position:fixed; inset:0; background:rgba(28,27,26,0.55); display:none; align-items:flex-end; justify-content:center; z-index:50; }
+  .overlay.show{ display:flex; }
+  .sheet{ background:var(--paper); width:100%; max-width:480px; border-radius:20px 20px 0 0; padding:22px 20px 26px; max-height:88vh; overflow-y:auto; }
+  .sheet h2{font-size:1.1rem; margin-bottom:4px;}
+  .sheet .sub{font-size:0.8rem; color:#6b6862; margin-bottom:16px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-size:0.75rem; font-weight:600; margin-bottom:5px; color:#4a4844;}
+  .field input, .field select{ width:100%; border:1px solid var(--line); border-radius:8px; padding:11px; font-size:0.88rem; font-family:inherit; background:#fff; color:var(--ink); }
+  .phone-row{ display:flex; gap:8px; }
+  .phone-prefix{ display:flex; align-items:center; justify-content:center; padding:0 12px; border:1px solid var(--line); border-radius:8px; background:var(--paper); font-size:0.88rem; font-weight:600; color:var(--ink); }
+  .phone-row input{ flex:1; }
+  .role-choice{ display:flex; gap:10px; margin-bottom:14px; transition:box-shadow 0.2s; border-radius:12px; }
+  .role-choice.error{ box-shadow: 0 0 0 2px var(--rust); }
+  .role-hint{ font-size:0.72rem; color:var(--rust); margin:-8px 0 12px; display:none; }
+  .role-hint.show{ display:block; }
+  .role-btn{ flex:1; padding:14px; border-radius:12px; border:1px solid var(--line); background:#fff; text-align:center; font-size:0.85rem; font-weight:600; }
+  .role-btn.selected{ border-color:var(--ochre); background:rgba(217,142,43,0.1); }
+  .close-x{ position:absolute; top:16px; right:20px; font-size:1.2rem; color:#8a877f; background:none; border:none; }
+  .sheet{position:relative;}
+
+  /* Chat */
+  .chat-list{ display:flex; flex-direction:column; gap:8px; }
+  .chat-row{ display:flex; justify-content:space-between; align-items:center; background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+  .chat-row .who{font-size:0.85rem; font-weight:600;}
+  .chat-row .last{font-size:0.75rem; color:#8a877f; margin-top:2px;}
+  .thread{ display:flex; flex-direction:column; gap:8px; padding:14px 0; max-height:260px; overflow-y:auto; }
+  .msg{ max-width:75%; padding:9px 12px; border-radius:12px; font-size:0.85rem; line-height:1.4; }
+  .msg.me{ align-self:flex-end; background:var(--ochre); color:var(--ink); border-bottom-right-radius:3px; }
+  .msg.them{ align-self:flex-start; background:#fff; border:1px solid var(--line); border-bottom-left-radius:3px; }
+  .msg.system{ align-self:center; max-width:90%; background:rgba(43,74,59,0.08); border:1px solid rgba(43,74,59,0.2); color:var(--forest); text-align:center; font-size:0.78rem; border-radius:12px; }
+  .composer{ display:flex; gap:8px; margin-top:10px; }
+  .composer input{ flex:1; border:1px solid var(--line); border-radius:100px; padding:11px 16px; font-size:0.85rem; font-family:inherit; }
+  .composer button{ background:var(--forest); color:var(--paper); border:none; border-radius:100px; padding:0 18px; font-weight:600; font-size:0.85rem; }
+
+  .toast{ position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(10px); background:var(--ink); color:var(--paper); padding:11px 18px; border-radius:100px; font-size:0.82rem; opacity:0; transition:all 0.25s; z-index:60; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .step-track{ display:flex; gap:6px; margin-bottom:18px; }
+  .step-dot{ height:4px; flex:1; border-radius:100px; background:var(--line); }
+  .step-dot.active{ background:var(--ochre); }
+  .step-dot.done{ background:var(--forest); }
+
+  .otp-demo{
+    background: rgba(217,142,43,0.12);
+    border:1px solid rgba(217,142,43,0.3);
+    color:#8a5a15;
+    font-size:0.78rem;
+    padding:10px 12px;
+    border-radius:10px;
+    margin-bottom:12px;
+    line-height:1.4;
+  }
+  .btn-link{ background:none; border:none; color:var(--forest); font-size:0.8rem; font-weight:600; margin-top:10px; display:block; margin-left:auto; margin-right:auto; }
+
+  .upload-box{
+    border:1.5px dashed var(--line);
+    border-radius:12px;
+    padding:20px 14px;
+    text-align:center;
+    font-size:0.82rem;
+    color:#6b6862;
+    margin-bottom:16px;
+    background:#fff;
+    display:block;
+    cursor:pointer;
+  }
+  .upload-box input[type="file"]{
+    position:absolute;
+    width:1px; height:1px;
+    opacity:0; overflow:hidden;
+  }
+  .upload-box.filled{ border-color:var(--forest); color:var(--forest); background:rgba(43,74,59,0.06); }
+
+  .verify-badge{
+    display:inline-flex; align-items:center; gap:4px;
+    font-size:0.68rem; font-weight:600;
+    background:rgba(43,74,59,0.12); color:var(--forest);
+    padding:2px 8px; border-radius:100px; margin-left:6px;
+  }
+  .pending-badge{
+    display:inline-flex; align-items:center; gap:4px;
+    font-size:0.68rem; font-weight:600;
+    background:rgba(217,142,43,0.15); color:#8a5a15;
+    padding:2px 8px; border-radius:100px; margin-left:6px;
+  }
+
+  @media(min-width:640px){ .listings{grid-template-columns:1fr 1fr 1fr;} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <div class="logo"><span class="dot"></span>CarDeal241</div>
+    <div class="tagline">Vends et achète ta voiture</div>
+  </div>
+  <div id="header-right"></div>
+</header>
+<div class="road"></div>
+
+<section>
+  <div class="tabs">
+    <button class="tab active" data-tab="annonces">Annonces</button>
+    <button class="tab" data-tab="messages">Mes messages</button>
+  </div>
+
+  <div id="view-annonces">
+    <div class="section-head">
+      <h2>Voitures disponibles</h2>
+      <button class="btn btn-forest btn-sm" id="btn-add-listing">+ Publier</button>
+    </div>
+    <div class="safety-note">
+      🛈 CarDeal241 met seulement les vendeurs et acheteurs en contact. Le paiement (en espèces) et la remise des papiers du véhicule se font en personne, lors du rendez-vous. Rencontrez-vous dans un lieu public et vérifiez les papiers avant de payer.
+    </div>
+    <div class="listings" id="listings"></div>
+  </div>
+
+  <div id="view-messages" style="display:none;">
+    <div class="section-head"><h2>Mes conversations</h2></div>
+    <div class="chat-list" id="chat-list"></div>
+  </div>
+</section>
+
+<!-- Modal: inscription (en plusieurs étapes) -->
+<div class="overlay" id="overlay-auth">
+  <div class="sheet">
+    <button class="close-x" data-close="overlay-auth">✕</button>
+
+    <div class="step-track" id="step-track">
+      <div class="step-dot active" data-step="1"></div>
+      <div class="step-dot" data-step="2"></div>
+      <div class="step-dot" data-step="3"></div>
+    </div>
+
+    <!-- Etape 1: infos -->
+    <div class="auth-step" id="step-1">
+      <h2>Créer ton compte</h2>
+      <div class="sub">Choisis ton profil pour commencer.</div>
+      <div class="role-choice" id="role-choice">
+        <button class="role-btn" id="role-vendeur">Vendeur</button>
+        <button class="role-btn" id="role-acheteur">Acheteur</button>
+      </div>
+      <div class="role-hint" id="role-hint">Choisis "Vendeur" ou "Acheteur" avant de continuer ↑</div>
+      <div class="field"><label>Nom complet</label><input id="auth-name" placeholder="Ton nom"></div>
+      <div class="field">
+        <label>Téléphone</label>
+        <div class="phone-row">
+          <span class="phone-prefix">+241</span>
+          <input id="auth-phone" placeholder="0X XX XX XX" inputmode="numeric">
+        </div>
+      </div>
+      <button class="btn btn-ochre btn-block" id="step1-next">Continuer</button>
+    </div>
+
+    <!-- Etape 2: vérification téléphone -->
+    <div class="auth-step" id="step-2" style="display:none;">
+      <h2>Vérifie ton numéro</h2>
+      <div class="sub" id="otp-sub">Un code à 4 chiffres a été envoyé par SMS.</div>
+      <div class="otp-demo" id="otp-demo"></div>
+      <div class="field"><label>Code reçu</label><input id="otp-input" placeholder="0000" inputmode="numeric" maxlength="4"></div>
+      <button class="btn btn-ochre btn-block" id="step2-next">Vérifier le code</button>
+      <button class="btn-link" id="otp-resend">Renvoyer le code</button>
+    </div>
+
+    <!-- Etape 3: pièce d'identité -->
+    <div class="auth-step" id="step-3" style="display:none;">
+      <h2>Vérifie ton identité</h2>
+      <div class="sub">Pour la sécurité de tous, une pièce d'identité valide (CNI, passeport) est demandée avant de pouvoir publier ou contacter un vendeur.</div>
+      <div class="field">
+        <label>Type de pièce</label>
+        <select id="id-type">
+          <option>Carte Nationale d'Identité</option>
+          <option>Passeport</option>
+          <option>Permis de conduire</option>
+        </select>
+      </div>
+      <label class="upload-box" id="upload-box" for="id-file">
+        <input type="file" id="id-file" accept="image/*,.pdf" capture="environment">
+        <div id="upload-label">📄 Prendre une photo ou choisir un fichier</div>
+      </label>
+      <button class="btn-link" id="upload-fallback" type="button">Le sélecteur ne s'ouvre pas ? Continuer en mode démo</button>
+      <button class="btn btn-ochre btn-block" id="step3-next">Terminer l'inscription</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: publier annonce -->
+<div class="overlay" id="overlay-listing">
+  <div class="sheet">
+    <button class="close-x" data-close="overlay-listing">✕</button>
+    <h2>Publier une annonce</h2>
+    <div class="sub">Renseigne les infos de ton véhicule.</div>
+    <div class="field"><label>Modèle</label><input id="l-name" placeholder="Ex: Toyota RAV4 2015"></div>
+    <div class="field"><label>Prix (FCFA)</label><input id="l-price" placeholder="Ex: 4 200 000" inputmode="numeric"></div>
+    <div class="field"><label>Ville</label><input id="l-city" placeholder="Ex: Libreville"></div>
+    <div class="field"><label>Kilométrage</label><input id="l-km" placeholder="Ex: 98 000 km"></div>
+    <button class="btn btn-ochre btn-block" id="listing-submit">Publier l'annonce</button>
+  </div>
+</div>
+
+<!-- Modal: chat -->
+<div class="overlay" id="overlay-chat">
+  <div class="sheet">
+    <button class="close-x" data-close="overlay-chat">✕</button>
+    <h2 id="chat-title">Conversation</h2>
+    <div class="sub" id="chat-sub"></div>
+    <div class="thread" id="thread"></div>
+    <div class="composer">
+      <input id="chat-input" placeholder="Écris un message...">
+      <button id="chat-send">Envoyer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ----- Etat en mémoire (démo — pas de backend pour l'instant) -----
+let currentUser = null; // {name, phone, role}
+let selectedRole = null;
+let listings = [
+  {id:1, name:"Toyota RAV4 2015", price:"4 200 000 FCFA", city:"Libreville", km:"98 000 km", seller:"Jean-Marc"},
+  {id:2, name:"Hyundai Elantra 2013", price:"2 800 000 FCFA", city:"Owendo", km:"140 000 km", seller:"Sylvie"},
+  {id:3, name:"Nissan X-Trail 2017", price:"6 500 000 FCFA", city:"Port-Gentil", km:"62 000 km", seller:"Armand"},
+];
+let nextListingId = 4;
+// conversations: key = listingId, value = {listing, messages:[{from:'me'|'them', text}]}
+let conversations = {};
+let activeChatListingId = null;
+
+// ----- Helpers -----
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function open(id){ document.getElementById(id).classList.add('show'); }
+function close(id){ document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('[data-close]').forEach(b=>{
+  b.addEventListener('click', ()=>close(b.dataset.close));
+});
+
+function renderHeader(){
+  const el = document.getElementById('header-right');
+  if(!currentUser){
+    el.innerHTML = `<button class="btn btn-ochre" id="btn-login">S'inscrire</button>`;
+    document.getElementById('btn-login').addEventListener('click', ()=>open('overlay-auth'));
+  } else {
+    const initial = currentUser.name.charAt(0).toUpperCase();
+    const idBadge = currentUser.idStatus === 'en_attente'
+      ? `<span class="pending-badge">ID en attente</span>`
+      : `<span class="verify-badge">ID ✓</span>`;
+    el.innerHTML = `<div class="user-chip"><div class="avatar">${initial}</div>${currentUser.name} · ${currentUser.role === 'vendeur' ? 'Vendeur' : 'Acheteur'}${idBadge}</div>`;
+  }
+}
+
+function renderListings(){
+  const el = document.getElementById('listings');
+  if(listings.length === 0){
+    el.innerHTML = `<div class="empty">Aucune annonce pour l'instant.</div>`;
+    return;
+  }
+  el.innerHTML = listings.map(l => `
+    <div class="card">
+      <div class="thumb">Photo</div>
+      <div class="body">
+        <div class="price">${l.price}</div>
+        <div class="name">${l.name}</div>
+        <div class="meta">${l.city} · ${l.km} · vendeur: ${l.seller}</div>
+        <button class="btn btn-outline btn-sm btn-block" onclick="startChat(${l.id})">Faire une demande</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderChatList(){
+  const el = document.getElementById('chat-list');
+  const keys = Object.keys(conversations);
+  if(keys.length === 0){
+    el.innerHTML = `<div class="empty">Pas encore de conversation. Contacte un vendeur depuis une annonce.</div>`;
+    return;
+  }
+  el.innerHTML = keys.map(id => {
+    const c = conversations[id];
+    const last = c.messages[c.messages.length-1];
+    return `<div class="chat-row" onclick="openChat(${id})">
+      <div><div class="who">CarDeal241 — ${c.listing.name}</div><div class="last">${last ? last.text : ''}</div></div>
+      <div style="font-size:0.75rem;color:#8a877f;">→</div>
+    </div>`;
+  }).join('');
+}
+
+function requireAuth(){
+  if(!currentUser){
+    toast("Inscris-toi d'abord pour continuer");
+    open('overlay-auth');
+    return false;
+  }
+  return true;
+}
+
+window.startChat = function(listingId){
+  if(!requireAuth()) return;
+  const listing = listings.find(l=>l.id===listingId);
+  if(!conversations[listingId]){
+    conversations[listingId] = {
+      listing,
+      messages: [
+        {from:'them', text:`Bonjour, merci pour votre intérêt pour la ${listing.name}. Je suis l'administrateur de CarDeal241, je vais contacter le vendeur (${listing.seller}) et revenir vers vous rapidement pour organiser un rendez-vous.`},
+        {from:'system', text:`🔧 Après votre achat, CarDeal241 peut vous mettre en relation avec un mécanicien partenaire pour une révision complète, à prix abordable. Demandez-nous si ça vous intéresse.`}
+      ]
+    };
+  }
+  openChat(listingId);
+};
+
+window.openChat = function(listingId){
+  activeChatListingId = listingId;
+  const c = conversations[listingId];
+  document.getElementById('chat-title').textContent = 'CarDeal241';
+  document.getElementById('chat-sub').textContent = c.listing.name + ' · vendeur : ' + c.listing.seller;
+  renderThread();
+  open('overlay-chat');
+};
+
+function renderThread(){
+  const c = conversations[activeChatListingId];
+  const el = document.getElementById('thread');
+  el.innerHTML = c.messages.map(m => `<div class="msg ${m.from}">${m.text}</div>`).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+document.getElementById('chat-send').addEventListener('click', sendMsg);
+document.getElementById('chat-input').addEventListener('keypress', e=>{ if(e.key==='Enter') sendMsg(); });
+function sendMsg(){
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if(!text || !activeChatListingId) return;
+  const c = conversations[activeChatListingId];
+  c.messages.push({from:'me', text});
+  input.value = '';
+  renderThread();
+  renderChatList();
+  setTimeout(()=>{
+    c.messages.push({from:'them', text:"D'accord, je vous réponds dès que possible !"});
+    if(activeChatListingId){ renderThread(); renderChatList(); }
+  }, 1100);
+}
+
+// ----- Inscription en 3 étapes -----
+document.getElementById('role-vendeur').addEventListener('click', ()=>selectRole('vendeur'));
+document.getElementById('role-acheteur').addEventListener('click', ()=>selectRole('acheteur'));
+function selectRole(role){
+  selectedRole = role;
+  document.getElementById('role-vendeur').classList.toggle('selected', role==='vendeur');
+  document.getElementById('role-acheteur').classList.toggle('selected', role==='acheteur');
+  document.getElementById('role-choice').classList.remove('error');
+  document.getElementById('role-hint').classList.remove('show');
+}
+
+let pendingUser = null;
+let generatedOtp = null;
+let idFileName = null;
+
+function goToStep(n){
+  [1,2,3].forEach(i=>{
+    document.getElementById('step-'+i).style.display = (i===n) ? 'block' : 'none';
+  });
+  document.querySelectorAll('.step-dot').forEach(dot=>{
+    const s = parseInt(dot.dataset.step);
+    dot.classList.toggle('active', s===n);
+    dot.classList.toggle('done', s<n);
+  });
+}
+
+document.getElementById('step1-next').addEventListener('click', ()=>{
+  const name = document.getElementById('auth-name').value.trim();
+  const phone = document.getElementById('auth-phone').value.trim();
+  if(!selectedRole){
+    toast('Choisis vendeur ou acheteur');
+    document.getElementById('role-choice').classList.add('error');
+    document.getElementById('role-hint').classList.add('show');
+    return;
+  }
+  if(!name){ toast('Entre ton nom'); return; }
+  if(!phone){ toast('Entre ton numéro de téléphone'); return; }
+  pendingUser = {name, phone: '+241 ' + phone, role: selectedRole};
+  sendOtp();
+  goToStep(2);
+});
+
+function sendOtp(){
+  generatedOtp = String(Math.floor(1000 + Math.random()*9000));
+  document.getElementById('otp-input').value = '';
+  document.getElementById('otp-sub').textContent = `Un code à 4 chiffres a été envoyé au ${pendingUser.phone}.`;
+  document.getElementById('otp-demo').textContent = `Mode démo (pas de vrai SMS envoyé) — code de test : ${generatedOtp}`;
+}
+document.getElementById('otp-resend').addEventListener('click', ()=>{
+  sendOtp();
+  toast('Nouveau code envoyé');
+});
+
+document.getElementById('step2-next').addEventListener('click', ()=>{
+  const code = document.getElementById('otp-input').value.trim();
+  if(code !== generatedOtp){ toast('Code incorrect, réessaie'); return; }
+  pendingUser.phoneVerified = true;
+  toast('Numéro vérifié ✓');
+  goToStep(3);
+});
+
+document.getElementById('id-file').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  idFileName = file.name;
+  const box = document.getElementById('upload-box');
+  box.classList.add('filled');
+  document.getElementById('upload-label').textContent = `✓ ${file.name} sélectionné`;
+});
+document.getElementById('upload-fallback').addEventListener('click', ()=>{
+  idFileName = 'piece-identite-demo.jpg';
+  const box = document.getElementById('upload-box');
+  box.classList.add('filled');
+  document.getElementById('upload-label').textContent = '✓ Pièce ajoutée (mode démo)';
+  toast('Continué en mode démo — le vrai upload sera testé dans le navigateur');
+});
+
+document.getElementById('step3-next').addEventListener('click', ()=>{
+  if(!idFileName){ toast("Ajoute une photo ou un scan de ta pièce d'identité"); return; }
+  pendingUser.idType = document.getElementById('id-type').value;
+  pendingUser.idFileName = idFileName;
+  pendingUser.idStatus = 'en_attente';
+  currentUser = pendingUser;
+  renderHeader();
+  close('overlay-auth');
+  toast(`Bienvenue, ${currentUser.name} ! Ta pièce d'identité est en cours de vérification.`);
+  pendingUser = null; idFileName = null;
+  goToStep(1);
+  document.getElementById('id-file').value = '';
+  document.getElementById('upload-box').classList.remove('filled');
+  document.getElementById('upload-label').textContent = '📄 Prendre une photo ou choisir un fichier';
+});
+
+document.getElementById('btn-add-listing').addEventListener('click', ()=>{
+  if(!requireAuth()) return;
+  if(currentUser.role !== 'vendeur'){
+    toast("Seuls les comptes vendeur peuvent publier une annonce");
+    return;
+  }
+  open('overlay-listing');
+});
+document.getElementById('listing-submit').addEventListener('click', ()=>{
+  const name = document.getElementById('l-name').value.trim();
+  const price = document.getElementById('l-price').value.trim();
+  const city = document.getElementById('l-city').value.trim();
+  const km = document.getElementById('l-km').value.trim();
+  if(!name || !price || !city){ toast('Remplis au moins le modèle, le prix et la ville'); return; }
+  listings.unshift({
+    id: nextListingId++,
+    name, price: price + (price.includes('FCFA') ? '' : ' FCFA'),
+    city, km: km || '—', seller: currentUser.name
+  });
+  renderListings();
+  close('overlay-listing');
+  toast('Annonce publiée !');
+  ['l-name','l-price','l-city','l-km'].forEach(id=>document.getElementById(id).value='');
+});
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    const t = tab.dataset.tab;
+    document.getElementById('view-annonces').style.display = t==='annonces' ? 'block' : 'none';
+    document.getElementById('view-messages').style.display = t==='messages' ? 'block' : 'none';
+    if(t==='messages') renderChatList();
+  });
+});
+
+renderHeader();
+renderListings();
+</script>
+
+</body>
+</html>
